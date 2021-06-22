@@ -10,9 +10,10 @@ import (
 func TestStaticWheel(t *testing.T) {
 	wS := enigma.ETW_M4
 	var result []byte
-	for _, v := range enigma.ETW_M4.Lut() { //
+	for _, v := range []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZ") { //
 		a := wS.Encode(v)
-		fmt.Printf("enc %v -> %v\n", string(v), string(a))
+		b := wS.Decode(a)
+		fmt.Printf("enc %v -> %v, dec %v\n", string(v), string(a), string(b))
 		result = append(result, a)
 	}
 

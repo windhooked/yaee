@@ -10,7 +10,7 @@ import (
 func TestWheel(t *testing.T) {
 	wI := enigma.W_I
 	var result []byte
-	for _, v := range enigma.ETW_M4.Lut() { //
+	for _, v := range []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZ") {
 		if v == 'Q' {
 			fmt.Printf("transtion from Q - R")
 		}
