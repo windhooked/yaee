@@ -55,7 +55,8 @@ func init() {
 func (h *Wheel) Encode(in byte, bump bool) (out byte, notch bool) {
 	notch = false
 	if h.index <= numChars {
-		// TODO shift input by index and DialSetting
+		//http://users.telenet.be/d.rijmenants/en/enigmatech.htm
+		// TODO shift input by DialSetting + index , roll over
 		out = h.W.Encode(in) //
 		// if first wheel increment on every
 		if bump {
