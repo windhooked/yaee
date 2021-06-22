@@ -51,7 +51,7 @@ func (h *Enigma) Setting(rotor []string, dial []byte, pb []PB) {
 		default:
 			fmt.Printf("failed to find config for rotor type %v", rotor[k])
 		}
-		h.Wheels[k].DialSetting = dial[k]
+		h.Wheels[k].SetRing(dial[k])
 	}
 
 }

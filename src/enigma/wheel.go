@@ -21,23 +21,26 @@ Gamma       F S O K A N U E R H M B T I Y C W L Q P Z X V G J D
 
 */
 var (
-	W_I    = Wheel{W: W{setting: []byte("EKMFLGDQVZNTOWYHXUSPAIBRCJ")}, notch: []byte("Q"), DialSetting: 'A'}  // Q->R
-	W_II   = Wheel{W: W{setting: []byte("AJDKSIRUXBLHWTMCQGZNPYFVOE")}, notch: []byte("E"), DialSetting: 'A'}  // E->F
-	W_III  = Wheel{W: W{setting: []byte("BDFHJLCPRTXVZNYEIWGAKMUSQO")}, notch: []byte("V"), DialSetting: 'A'}  // V->W
-	W_IV   = Wheel{W: W{setting: []byte("ESOVPZJAYQUIRHXLNFTGKDCMWB")}, notch: []byte("J"), DialSetting: 'A'}  // J->K
-	W_V    = Wheel{W: W{setting: []byte("VZBRGITYUPSDNHLXAWMJQOFECK")}, notch: []byte("Z"), DialSetting: 'A'}  // Z->A
-	W_VI   = Wheel{W: W{setting: []byte("JPGVOUMFYQBENHZRDKASXLICTW")}, notch: []byte("ZM"), DialSetting: 'A'} // Z->A M-N
-	W_VII  = Wheel{W: W{setting: []byte("NZJHGRCXMYSWBOUFAIVLPEKQDT")}, notch: []byte("ZM"), DialSetting: 'A'} // Z->A M-N
-	W_VIII = Wheel{W: W{setting: []byte("FKQHTLXOCBJSPDZRAMEWNIUYGV")}, notch: []byte("ZM"), DialSetting: 'A'} //  Z auf A und von M auf N
+	ring   = W{setting: []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZ")}
+	W_I    = Wheel{W: W{setting: []byte("EKMFLGDQVZNTOWYHXUSPAIBRCJ")}, notch: []byte("Q"), ringSetting: 'A'}  // Q->R
+	W_II   = Wheel{W: W{setting: []byte("AJDKSIRUXBLHWTMCQGZNPYFVOE")}, notch: []byte("E"), ringSetting: 'A'}  // E->F
+	W_III  = Wheel{W: W{setting: []byte("BDFHJLCPRTXVZNYEIWGAKMUSQO")}, notch: []byte("V"), ringSetting: 'A'}  // V->W
+	W_IV   = Wheel{W: W{setting: []byte("ESOVPZJAYQUIRHXLNFTGKDCMWB")}, notch: []byte("J"), ringSetting: 'A'}  // J->K
+	W_V    = Wheel{W: W{setting: []byte("VZBRGITYUPSDNHLXAWMJQOFECK")}, notch: []byte("Z"), ringSetting: 'A'}  // Z->A
+	W_VI   = Wheel{W: W{setting: []byte("JPGVOUMFYQBENHZRDKASXLICTW")}, notch: []byte("ZM"), ringSetting: 'A'} // Z->A M-N
+	W_VII  = Wheel{W: W{setting: []byte("NZJHGRCXMYSWBOUFAIVLPEKQDT")}, notch: []byte("ZM"), ringSetting: 'A'} // Z->A M-N
+	W_VIII = Wheel{W: W{setting: []byte("FKQHTLXOCBJSPDZRAMEWNIUYGV")}, notch: []byte("ZM"), ringSetting: 'A'} //  Z auf A und von M auf N
 )
 
 type (
 	//Walze
 	Wheel struct {
 		W
-		DialSetting byte   // Setting
+		ringSetting byte   // Setting
 		notch       []byte // Notch position
 		index       uint8
+		lutIn       []byte
+		lutOut      []byte
 	}
 )
 
@@ -52,25 +55,45 @@ func init() {
 	W_VIII.Build()
 }
 
+func (h *Wheel) Build() {
+	h.W.Build()
+	h.lutIn = make([]uint8, 255)  //numChars+1)
+	h.lutOut = make([]uint8, 255) //numChars+1)
+	for k, v := range ring.setting {
+		h.lutIn[k] = v
+		h.lutOut[v] = byte(k)
+	}
+}
+
+//http://users.telenet.be/d.rijmenants/en/enigmatech.htm
 func (h *Wheel) Encode(in byte, bump bool) (out byte, notch bool) {
 	notch = false
-	if h.index <= numChars {
-		//http://users.telenet.be/d.rijmenants/en/enigmatech.htm
-		// TODO shift input by DialSetting + index , roll over
-		out = h.W.Encode(in) //
-		// if first wheel increment on every
-		if bump {
-			h.index++
-		}
-		// also support two notch rotors VI, VII, VII
-		if in == h.notch[0] || (len(h.notch) > 1 && in == h.notch[1]) {
-			notch = true
-		}
-	} else if h.index < 0 {
+	// check if notch position is support two notch rotors VI, VII, VII
+	if in == h.notch[0] || (len(h.notch) > 1 && in == h.notch[1]) {
+		notch = true
+	}
+
+	// translate ringsetting
+	i := h.lutOut[in] // get the index for input char
+	i = i + h.index   // offset with rotational index
+	if i > numChars {
+		i = i - numChars
+	}
+	in = h.lutIn[i] // lookup new char
+
+	// now encode with wheel
+	out = h.W.Encode(in)
+	// if first wheel increment on every
+	if bump {
+		h.index++
+	}
+
+	if h.index < 0 {
 		// should never be
 		h.index = 0
 
-	} else if h.index > numChars {
+	}
+	if h.index > numChars {
 		// start over
 		h.index = 0
 	}
@@ -84,4 +107,8 @@ func (h *Wheel) Decode(in byte) (out byte) {
 }
 func (h *Wheel) Lut() []byte {
 	return h.W.Lut()
+}
+func (h *Wheel) SetRing(in byte) {
+	h.ringSetting = in
+	h.index = in - 'A'
 }

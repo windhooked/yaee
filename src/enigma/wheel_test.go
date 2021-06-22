@@ -28,7 +28,7 @@ func TestWheel(t *testing.T) {
 	}
 
 	if string(result) != string(wI.Lut()) {
-		t.Fatalf("encoding for wheel I not correct")
+		t.Fatalf("encoding for wheel I not correct %v %v", string(result), string(wI.Lut()))
 	}
 
 }

@@ -27,5 +27,5 @@ func (h *W) Decode(in byte) (out byte) {
 	return h.lutIn[h.lutOut[in]]
 }
 func (h *W) Lut() []byte {
-	return h.lutIn[0:26]
+	return h.setting
 }
