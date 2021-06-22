@@ -1,0 +1,26 @@
+package enigma
+
+/*
+https://de.wikipedia.org/wiki/Enigma-Walzen#Walzenverdrahtung
+
+ETW	ABCDEFGHIJKLMNOPQRSTUVWXYZ		M4
+UKW Bruno	ENKQAUYWJICOPBLMDXZVFTHRGS	1. Februar 1942	M4
+UKW Cäsar	RDOBJNTKVEHMLFCWZAXGYIPSUQ	1. Juli 1943	M4
+Beta	LEYJVCNIXWPBQMDRTAKZGFUHOS	1. Februar 1942	M4
+Gamma	FSOKANUERHMBTIYCWLQPZXVGJD	1. Juli 1943	M4
+
+
+*/
+const (
+	UKW_ETW   = Rotor{Map: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"}
+	UKW_Bruno = Rotor{Map: "YRUHQSLDPXNGOKMIEBFZCWVJAT"}
+	UKW_Casar = Rotor{Map: "RDOBJNTKVEHMLFCWZAXGYIPSUQ"}
+	UKW_Beta  = Rotor{Map: "LEYJVCNIXWPBQMDRTAKZGFUHOS"}
+	UKW_Gamma = Rotor{Map: "FSOKANUERHMBTIYCWLQPZXVGJD"}
+)
+
+type (
+	Reflector struct {
+		Map []rune
+	}
+)
