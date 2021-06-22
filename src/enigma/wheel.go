@@ -1,7 +1,5 @@
 package enigma
 
-import "strings"
-
 /*
 http://users.telenet.be/d.rijmenants/en/enigmatech.htm
 //https://de.wikipedia.org/wiki/Enigma-M4
@@ -23,31 +21,42 @@ Gamma       F S O K A N U E R H M B T I Y C W L Q P Z X V G J D
 
 */
 var (
-	W_I    = Wheel{lut: []byte("EKMFLGDQVZNTOWYHXUSPAIBRCJ"), notch: []byte("Q"), DialSetting: 'A'}  // Q->R
-	W_II   = Wheel{lut: []byte("AJDKSIRUXBLHWTMCQGZNPYFVOE"), notch: []byte("E"), DialSetting: 'A'}  // E->F
-	W_III  = Wheel{lut: []byte("BDFHJLCPRTXVZNYEIWGAKMUSQO"), notch: []byte("V"), DialSetting: 'A'}  // V->W
-	W_IV   = Wheel{lut: []byte("ESOVPZJAYQUIRHXLNFTGKDCMWB"), notch: []byte("J"), DialSetting: 'A'}  // J->K
-	W_V    = Wheel{lut: []byte("VZBRGITYUPSDNHLXAWMJQOFECK"), notch: []byte("Z"), DialSetting: 'A'}  // Z->A
-	W_VI   = Wheel{lut: []byte("JPGVOUMFYQBENHZRDKASXLICTW"), notch: []byte("ZM"), DialSetting: 'A'} // Z->A M-N
-	W_VII  = Wheel{lut: []byte("NZJHGRCXMYSWBOUFAIVLPEKQDT"), notch: []byte("ZM"), DialSetting: 'A'} // Z->A M-N
-	W_VIII = Wheel{lut: []byte("FKQHTLXOCBJSPDZRAMEWNIUYGV"), notch: []byte("ZM"), DialSetting: 'A'} //  Z auf A und von M auf N
+	W_I    = Wheel{W: W{setting: []byte("EKMFLGDQVZNTOWYHXUSPAIBRCJ")}, notch: []byte("Q"), DialSetting: 'A'}  // Q->R
+	W_II   = Wheel{W: W{setting: []byte("AJDKSIRUXBLHWTMCQGZNPYFVOE")}, notch: []byte("E"), DialSetting: 'A'}  // E->F
+	W_III  = Wheel{W: W{setting: []byte("BDFHJLCPRTXVZNYEIWGAKMUSQO")}, notch: []byte("V"), DialSetting: 'A'}  // V->W
+	W_IV   = Wheel{W: W{setting: []byte("ESOVPZJAYQUIRHXLNFTGKDCMWB")}, notch: []byte("J"), DialSetting: 'A'}  // J->K
+	W_V    = Wheel{W: W{setting: []byte("VZBRGITYUPSDNHLXAWMJQOFECK")}, notch: []byte("Z"), DialSetting: 'A'}  // Z->A
+	W_VI   = Wheel{W: W{setting: []byte("JPGVOUMFYQBENHZRDKASXLICTW")}, notch: []byte("ZM"), DialSetting: 'A'} // Z->A M-N
+	W_VII  = Wheel{W: W{setting: []byte("NZJHGRCXMYSWBOUFAIVLPEKQDT")}, notch: []byte("ZM"), DialSetting: 'A'} // Z->A M-N
+	W_VIII = Wheel{W: W{setting: []byte("FKQHTLXOCBJSPDZRAMEWNIUYGV")}, notch: []byte("ZM"), DialSetting: 'A'} //  Z auf A und von M auf N
 )
 
 type (
 	//Walze
 	Wheel struct {
+		W
 		DialSetting byte   // Setting
-		lut         []byte // Wire routes
 		notch       []byte // Notch position
 		index       uint8
-		slot        uint8 // wheel slot right to left ==0,1,2,3
 	}
 )
+
+func init() {
+	W_I.Build()
+	W_II.Build()
+	W_II.Build()
+	W_IV.Build()
+	W_V.Build()
+	W_VI.Build()
+	W_VII.Build()
+	W_VIII.Build()
+}
 
 func (h *Wheel) Encode(in byte, bump bool) (out byte, notch bool) {
 	notch = false
 	if h.index <= numChars {
-		out = h.lut[h.index]
+		// TODO shift input by index and DialSetting
+		out = h.W.Encode(in) //
 		// if first wheel increment on every
 		if bump {
 			h.index++
@@ -68,9 +77,10 @@ func (h *Wheel) Encode(in byte, bump bool) (out byte, notch bool) {
 }
 
 func (h *Wheel) Decode(in byte) (out byte) {
-	k := strings.Index(string(h.lut), string(in))
-	return h.lut[k]
+	//k := strings.Index(string(h.lut), string(in))
+	//return h.lut[k]
+	return h.W.Decode(in)
 }
 func (h *Wheel) Lut() []byte {
-	return h.lut
+	return h.W.Lut()
 }

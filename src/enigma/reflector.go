@@ -14,21 +14,27 @@ UKW = Reflector
 
 */
 var (
-	UKW_A     = UKW{lut: []byte("EJMZALYXVBWFCRQUONTSPIKHGD")}
-	UKW_B     = UKW{lut: []byte("YRUHQSLDPXNGOKMIEBFZCWVJAT")} // 	2. November 193"
-	UKW_C     = UKW{lut: []byte("FVPJIAOYEDRZXWGCTKUQSBNMHL")} // 	1940"
-	UKW_Bruno = UKW{lut: []byte("YRUHQSLDPXNGOKMIEBFZCWVJAT")}
-	UKW_Casar = UKW{lut: []byte("RDOBJNTKVEHMLFCWZAXGYIPSUQ")}
-	UKW_Beta  = UKW{lut: []byte("LEYJVCNIXWPBQMDRTAKZGFUHOS")}
-	UKW_Gamma = UKW{lut: []byte("FSOKANUERHMBTIYCWLQPZXVGJD")}
+	UKW_A     = UKW{W{setting: []byte("EJMZALYXVBWFCRQUONTSPIKHGD")}}
+	UKW_B     = UKW{W{setting: []byte("YRUHQSLDPXNGOKMIEBFZCWVJAT")}} // 	2. November 193"
+	UKW_C     = UKW{W{setting: []byte("FVPJIAOYEDRZXWGCTKUQSBNMHL")}} // 	1940"
+	UKW_Bruno = UKW{W{setting: []byte("YRUHQSLDPXNGOKMIEBFZCWVJAT")}}
+	UKW_Casar = UKW{W{setting: []byte("RDOBJNTKVEHMLFCWZAXGYIPSUQ")}}
+	UKW_Beta  = UKW{W{setting: []byte("LEYJVCNIXWPBQMDRTAKZGFUHOS")}}
+	UKW_Gamma = UKW{W{setting: []byte("FSOKANUERHMBTIYCWLQPZXVGJD")}}
 )
 
 type (
 	UKW struct {
-		lut []byte
+		W
 	}
 )
 
+func init() {
+	UKW_A.Build()
+	UKW_B.Build()
+	UKW_C.Build()
+}
+
 func (h *UKW) Encode(in byte) (out byte) {
-	return h.lut[in-'A']
+	return h.W.Encode(in)
 }
