@@ -15,19 +15,55 @@ https://de.wikipedia.org/wiki/Enigma-M4
 |  26. |20/13 26/11 3/4 7/24 14/9 16/10 8/17 12/5 2/6 15/23 |Y S R B |
 */
 var (
-//	SB_XX = Plugboard{Lut: []uint8{0,  1,  2,  3,  4, 5,  6,  7, 8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26}}
-//	SB_30 = Plugboard{Lut: []uint8{0, -1, -1, 16, -1, 9, -1, -1, 1, -1, 15, -1, 25, -1, -1, -1, -1,  4, 26, 14, -1,  6,  7, -1, -1, -1, -1}}
-)
-
-type (
-	Plugboard struct {
-		Lut []uint8 // lookup table
+	PB_30 = []PB{
+		//|  30. |18/26 17/4 21/6 3/16 19/14 22/7 8/1 12/25 5/9 10/15 |H F K D |
+		{A: 18, B: 26},
+		{A: 17, B: 4},
+		{A: 21, B: 6},
+		{A: 3, B: 16},
+		{A: 19, B: 14},
+		{A: 22, B: 7},
+		{A: 8, B: 1},
+		{A: 12, B: 25},
+		{A: 5, B: 9},
+		{A: 10, B: 15},
 	}
 )
 
-func (h *Plugboard) AddWire(from, to uint8) {
+type (
+	SB struct {
+		Setting []PB
+		lutIn   []uint8 // lookup table
+		lutOut  []uint8 // lookup table
+	}
+	PB struct {
+		A uint8 // from
+		B uint8 //to
+	}
+)
+
+func (h *SB) WireUp(pb []PB) {
+	h.Setting = pb
+	h.lutIn = make([]uint8, numChars+1)
+	h.lutOut = make([]uint8, numChars+1)
+	for _, v := range pb {
+		h.lutIn[v.A] = v.B
+		h.lutOut[v.B] = v.A
+	}
 }
 
-func (h *Plugboard) Resolve(n uint8) uint8 {
-	return h.Lut[n]
+// Encode on the plugboard reroutes if plug wires are inserted, else input bridges to output
+func (h *SB) Encode(n uint8) (out uint8) {
+	out = h.lutIn[n-'A']
+	if out == 0 {
+		out = n
+	}
+	return
+}
+func (h *SB) Decode(n uint8) (out uint8) {
+	out = h.lutOut[n-'A']
+	if out == 0 {
+		out = n
+	}
+	return
 }
