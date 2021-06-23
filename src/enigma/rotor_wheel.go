@@ -1,6 +1,8 @@
 package enigma
 
-import "fmt"
+import (
+	"fmt"
+)
 
 /*
 http://users.telenet.be/d.rijmenants/en/enigmatech.htm
@@ -104,65 +106,42 @@ func (h *RotorWheel) transposeIn(in byte) (out byte) {
 	i := h.charIndex.GetIndex(in)
 	// calculate the offset for ring setting and rotor position
 	//offset := (i + h.innerSetting + h.rotorPosition) % 26
-	offset := (i + h.rotorPosition) % 26
+	//offset := (i + h.rotorPosition) % 26
+	offset := h.wrap(i+h.rotorPosition, 26)
+
 	fmt.Printf("offset: %v\n", offset)
 	c := h.charIndex.GetChar(offset) //get the character at offset
 	iCode := h.charIndex.GetIndex(c) // get the index for new character
 	// now code the new char
-	iCode = (iCode + h.innerPosition) % 26
+	//iCode = (iCode + h.innerPosition) % 26
+	iCode = h.wrap(iCode+h.innerPosition, 26)
 	out = h.codeWheel.GetChar(iCode) // get the coded char for that offset
 	return
 }
 
+//TODO this seems to work, will need to investigate a bit more to simplify
 func (h *RotorWheel) transposeOut(in byte) (out byte) {
+	// get the index for the coded char
 	i := h.codeWheel.GetIndex(in)
 	// calculate the offset for ring setting and rotor position
-	//offset := (i + h.innerSetting + h.rotorPosition) % 26
-	offset := (i - h.rotorPosition) % 26
+
+	offset := h.wrap(-h.innerPosition-i, 26)
 	fmt.Printf("offset: %v\n", offset)
-	c := h.codeWheel.GetChar(offset) //get the character at offset
-	iCode := h.codeWheel.GetIndex(c) // get the index for new character
+	c := h.charIndex.GetChar(offset) //get the character at offset
+	iCode := h.charIndex.GetIndex(c) // get the index for new character
+
 	// now code the new char
-	iCode = (iCode - h.innerPosition) % 26
+
+	// this works to decode the message without reflector, it is probably
+	// related to the reflector forumlae
+	// iCode = h.wrap(-(2*h.innerPosition)-h.rotorPosition-iCode, 26)
+	//
+	iCode = h.wrap(-(2*h.innerPosition)-h.rotorPosition-iCode, 26)
+	//iCode = h.wrap(iCode+h.innerPosition, 26)
 	out = h.charIndex.GetChar(iCode) // get the coded char for that offset
 	return
 }
 
-/*
-func (h *RotorWheel) EncodeOld(in byte, bump bool) (out byte, notch bool) {
-	notch = false
-	// check if notch position is support two notch rotors VI, VII, VII
-	if in == h.notch[0] || (len(h.notch) > 1 && in == h.notch[1]) {
-		notch = true
-	}
-
-	// translate ringsetting
-	i := h.lutOut[in] // get the index for input char
-	i = i + h.index   // offset with rotational index
-	if i > numChars {
-		i = i - numChars
-	}
-	in = h.lutIn[i] // lookup new char
-
-	// now encode with wheel
-	out = h.codeWheel.Encode(in)
-	// if first wheel increment on every
-	if bump {
-		h.index++
-	}
-
-	if h.index < 0 {
-		// should never be
-		h.index = 0
-
-	}
-	if h.index > numChars {
-		// start over
-		h.index = 0
-	}
-	return
-}
-*/
 func (h *RotorWheel) Lut() []byte {
 	return h.codeWheel.Lut()
 }
@@ -171,4 +150,7 @@ func (h *RotorWheel) SetInner(in byte) {
 }
 func (h *RotorWheel) SetRing(in byte) {
 	h.rotorPosition = h.charIndex.GetIndex(in)
+}
+func (h *RotorWheel) wrap(index, n uint8) uint8 {
+	return ((index % n) + n) % n
 }
