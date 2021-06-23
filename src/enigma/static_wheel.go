@@ -22,3 +22,8 @@ func init() {
 	ETW_Enigma1.Build()
 	ETW_Reichsbahn.Build()
 }
+
+func (h *W) Encode(in uint8) (out byte) {
+	a := h.GetIndex(in)
+	return h.GetChar(a)
+}

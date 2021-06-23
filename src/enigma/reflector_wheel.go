@@ -36,5 +36,5 @@ func init() {
 }
 
 func (h *UKW) Encode(in byte) (out byte) {
-	return h.W.Encode(in)
+	return h.W.GetChar(in - 'A')
 }

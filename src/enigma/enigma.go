@@ -6,7 +6,7 @@ type (
 	Enigma struct {
 		Plugboard   SB
 		StaticWheel ETW
-		Wheels      []Wheel
+		Wheels      []RotorWheel
 		Reflector   UKW
 	}
 )
@@ -18,7 +18,7 @@ const (
 var (
 	M4 = &Enigma{
 		StaticWheel: ETW_M4,
-		Wheels:      []Wheel{W_I, W_II, W_III},
+		Wheels:      []RotorWheel{W_I, W_II, W_III},
 		Reflector:   UKW_A,
 	}
 )
