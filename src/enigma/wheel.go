@@ -54,9 +54,3 @@ func (h *W) GetChar(in uint8) (out byte) {
 func (h *W) Lut() []byte {
 	return h.setting
 }
-
-func (h *W) wrap(n uint8) uint8 {
-	if n > numChars {
-	}
-	return n
-}

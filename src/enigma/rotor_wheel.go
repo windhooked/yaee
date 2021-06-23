@@ -151,6 +151,7 @@ func (h *RotorWheel) SetInner(in byte) {
 func (h *RotorWheel) SetRing(in byte) {
 	h.rotorPosition = h.charIndex.GetIndex(in)
 }
-func (h *RotorWheel) wrap(index, n uint8) uint8 {
-	return ((index % n) + n) % n
+
+func (h *RotorWheel) wrap(index, bufferLength uint8) uint8 {
+	return ((index % bufferLength) + bufferLength) % bufferLength
 }
