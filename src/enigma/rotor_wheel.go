@@ -22,21 +22,22 @@ Gamma       F S O K A N U E R H M B T I Y C W L Q P Z X V G J D
 */
 var (
 	// used to translate from and to char <-> index
-	W_I     = RotorWheel{codeWheel: &W{setting: []byte("EKMFLGDQVZNTOWYHXUSPAIBRCJ")}, notch: []byte("Q")}  // Q->R
-	W_II    = RotorWheel{codeWheel: &W{setting: []byte("AJDKSIRUXBLHWTMCQGZNPYFVOE")}, notch: []byte("E")}  // E->F
-	W_III   = RotorWheel{codeWheel: &W{setting: []byte("BDFHJLCPRTXVZNYEIWGAKMUSQO")}, notch: []byte("V")}  // V->W
-	W_IV    = RotorWheel{codeWheel: &W{setting: []byte("ESOVPZJAYQUIRHXLNFTGKDCMWB")}, notch: []byte("J")}  // J->K
-	W_V     = RotorWheel{codeWheel: &W{setting: []byte("VZBRGITYUPSDNHLXAWMJQOFECK")}, notch: []byte("Z")}  // Z->A
-	W_VI    = RotorWheel{codeWheel: &W{setting: []byte("JPGVOUMFYQBENHZRDKASXLICTW")}, notch: []byte("ZM")} // Z->A M-N
-	W_VII   = RotorWheel{codeWheel: &W{setting: []byte("NZJHGRCXMYSWBOUFAIVLPEKQDT")}, notch: []byte("ZM")} // Z->A M-N
-	W_VIII  = RotorWheel{codeWheel: &W{setting: []byte("FKQHTLXOCBJSPDZRAMEWNIUYGV")}, notch: []byte("ZM")} //  Z auf A und von M auf N
-	W_Beta  = RotorWheel{codeWheel: &W{setting: []byte("LEYJVCNIXWPBQMDRTAKZGFUHOS")}}
-	W_Gamma = RotorWheel{codeWheel: &W{setting: []byte("FSOKANUERHMBTIYCWLQPZXVGJD")}}
+	W_I     = RotorWheelSetting{Name: "I", Code: "EKMFLGDQVZNTOWYHXUSPAIBRCJ", Notch: []byte("Q")}     // Q->R
+	W_II    = RotorWheelSetting{Name: "II", Code: "AJDKSIRUXBLHWTMCQGZNPYFVOE", Notch: []byte("E")}    // E->F
+	W_III   = RotorWheelSetting{Name: "II", Code: "BDFHJLCPRTXVZNYEIWGAKMUSQO", Notch: []byte("V")}    // V->W
+	W_IV    = RotorWheelSetting{Name: "III", Code: "ESOVPZJAYQUIRHXLNFTGKDCMWB", Notch: []byte("J")}   // J->K
+	W_V     = RotorWheelSetting{Name: "V", Code: "VZBRGITYUPSDNHLXAWMJQOFECK", Notch: []byte("Z")}     // Z->A
+	W_VI    = RotorWheelSetting{Name: "VI", Code: "JPGVOUMFYQBENHZRDKASXLICTW", Notch: []byte("ZM")}   // Z->A M-N
+	W_VII   = RotorWheelSetting{Name: "VII", Code: "NZJHGRCXMYSWBOUFAIVLPEKQDT", Notch: []byte("ZM")}  // Z->A M-N
+	W_VIII  = RotorWheelSetting{Name: "VIII", Code: "FKQHTLXOCBJSPDZRAMEWNIUYGV", Notch: []byte("ZM")} //  Z auf A und von M auf N
+	W_Beta  = RotorWheelSetting{Name: "B", Code: "LEYJVCNIXWPBQMDRTAKZGFUHOS"}
+	W_Gamma = RotorWheelSetting{Name: "G", Code: "FSOKANUERHMBTIYCWLQPZXVGJD"}
 )
 
 type (
 	//
 	RotorWheel struct {
+		Name          string
 		codeWheel     *W
 		innerPosition byte   // adjustable inner Setting (offset), stored as index
 		notch         []byte // notch position
@@ -44,19 +45,24 @@ type (
 		rotorPosition uint8 //rotor position
 		charIndex     *W    //lookup
 	}
+	RotorWheelSetting struct {
+		Name  string
+		Code  string
+		Notch []byte
+	}
 )
 
-func NewRotorWheel(w RotorWheel) *RotorWheel {
-	w.Build()
-	return &w
-}
-func (h *RotorWheel) Build() {
-	h.codeWheel.Build()
-	h.charIndex = NewWheel(CharacterSet)
-	h.charIndex.Build()
-	for _, v := range h.notch {
+func NewRotorWheel(w RotorWheelSetting) *RotorWheel {
+	h := &RotorWheel{
+		codeWheel: NewWheel(w.Code),
+		charIndex: NewWheel(CharacterSet),
+		notch:     w.Notch,
+		Name:      w.Name,
+	}
+	for _, v := range w.Notch {
 		h.notchIndex = append(h.notchIndex, h.charIndex.GetIndex(v))
 	}
+	return h
 }
 
 //http://users.telenet.be/d.rijmenants/en/enigmatech.htm
