@@ -22,23 +22,21 @@ func TestEnigma(t *testing.T) {
 	testCipher := strings.ToUpper(strings.ReplaceAll(test_P1030669, " ", ""))
 
 	m4 := enigma.NewEnigma(enigma.EnigmaSetting{
-		Walzenlage: []string{"VIII", "VI", "V", "B"},
-		//Ringstellung: []byte{'E', 'O', 'G', 'D'}, //
-		Ringstellung: []byte{'L', 'E', 'A', 'A'}, //
+		Walzenlage:   []string{"VIII", "VI", "V", "B"},
+		Ringstellung: []byte{'E', 'O', 'G', 'D'}, //
 		Steckerverbindung: [][]byte{
 			//{'A', 'E'}, {'D', 'Q'}, {'R', 'C'}, {'V', 'B'}, {'M', 'T'}, {'O', 'G'}, {'P', 'F'}, {'Y', 'L'}, {'J', 'W'}, {'I', 'Z'},
 			//{'B', 'Q'}, {'C', 'R'}, {'D', 'I'}, {'E', 'J'}, {'K', 'W'}, {'M', 'T'}, {'O', 'S'}, {'P', 'X'}, {'U', 'Z'}, {'G', 'H'},
 			//{'A', 'T'}, {'C', 'L'}, {'D', 'H'}, {'E', 'P'}, {'F', 'G'}, {'I', 'O'}, {'J', 'N'}, {'K', 'Q'}, {'M', 'U'}, {'R', 'X'},
 			{'A', 'E'}, {'B', 'F'}, {'C', 'M'}, {'D', 'Q'}, {'H', 'U'}, {'J', 'N'}, {'L', 'X'}, {'P', 'R'}, {'S', 'Z'}, {'V', 'W'},
 		},
-		Eintriswalze: enigma.ETW_M4,
-		Reflector:    enigma.UKW_Casar,
-		//Rotorstellung: []byte{'L', 'E', 'A', 'A'},
-		Rotorstellung: []byte{'E', 'O', 'G', 'D'},
+		Eintrittswalze: enigma.ETW_M4,
+		Reflector:      enigma.UKW_Casar,
+		Rotorstellung:  []byte{'L', 'E', 'A', 'A'},
 	})
 
 	//code := m4.Step(testCipher[0])
-	code := m4.Codec(testCipher)
+	code := m4.Codec(testCipher[0:6])
 
 	fmt.Printf(">> %v", string(code))
 }

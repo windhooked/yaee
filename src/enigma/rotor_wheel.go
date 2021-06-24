@@ -1,5 +1,7 @@
 package enigma
 
+import "fmt"
+
 /*
 http://users.telenet.be/d.rijmenants/en/enigmatech.htm
 //https://de.wikipedia.org/wiki/Enigma-M4
@@ -24,8 +26,8 @@ var (
 	// used to translate from and to char <-> index
 	W_I     = RotorWheelSetting{Name: "I", Code: "EKMFLGDQVZNTOWYHXUSPAIBRCJ", Notch: []byte("Q")}     // Q->R
 	W_II    = RotorWheelSetting{Name: "II", Code: "AJDKSIRUXBLHWTMCQGZNPYFVOE", Notch: []byte("E")}    // E->F
-	W_III   = RotorWheelSetting{Name: "II", Code: "BDFHJLCPRTXVZNYEIWGAKMUSQO", Notch: []byte("V")}    // V->W
-	W_IV    = RotorWheelSetting{Name: "III", Code: "ESOVPZJAYQUIRHXLNFTGKDCMWB", Notch: []byte("J")}   // J->K
+	W_III   = RotorWheelSetting{Name: "III", Code: "BDFHJLCPRTXVZNYEIWGAKMUSQO", Notch: []byte("V")}   // V->W
+	W_IV    = RotorWheelSetting{Name: "IV", Code: "ESOVPZJAYQUIRHXLNFTGKDCMWB", Notch: []byte("J")}    // J->K
 	W_V     = RotorWheelSetting{Name: "V", Code: "VZBRGITYUPSDNHLXAWMJQOFECK", Notch: []byte("Z")}     // Z->A
 	W_VI    = RotorWheelSetting{Name: "VI", Code: "JPGVOUMFYQBENHZRDKASXLICTW", Notch: []byte("ZM")}   // Z->A M-N
 	W_VII   = RotorWheelSetting{Name: "VII", Code: "NZJHGRCXMYSWBOUFAIVLPEKQDT", Notch: []byte("ZM")}  // Z->A M-N
@@ -37,7 +39,8 @@ var (
 type (
 	//
 	RotorWheel struct {
-		Name          string
+		Name          string //used for debugging
+		Pos           int    //used for debugging
 		codeWheel     *W
 		innerPosition byte   // adjustable inner Setting (offset), stored as index
 		notch         []byte // notch position
@@ -46,18 +49,20 @@ type (
 		charIndex     *W    //lookup
 	}
 	RotorWheelSetting struct {
-		Name  string
-		Code  string
-		Notch []byte
+		Name     string
+		Position uint8
+		Code     string
+		Notch    []byte
 	}
 )
 
-func NewRotorWheel(w RotorWheelSetting) *RotorWheel {
+func NewRotorWheel(pos int, w RotorWheelSetting) *RotorWheel {
 	h := &RotorWheel{
 		codeWheel: NewWheel(w.Code),
 		charIndex: NewWheel(CharacterSet),
 		notch:     w.Notch,
 		Name:      w.Name,
+		Pos:       pos,
 	}
 	for _, v := range w.Notch {
 		h.notchIndex = append(h.notchIndex, h.charIndex.GetIndex(v))
@@ -65,28 +70,39 @@ func NewRotorWheel(w RotorWheelSetting) *RotorWheel {
 	return h
 }
 
-//http://users.telenet.be/d.rijmenants/en/enigmatech.htm
-func (h *RotorWheel) Encode(in uint8, bump bool) (out uint8, notch bool) {
+func (h *RotorWheel) Step(bump bool) (notch bool) {
 	// the rotor first increments by 1
 	if bump {
 		h.rotorPosition += 1
+		// the rotor first increments by 1
 		if h.rotorPosition >= 26 {
 			h.rotorPosition = 0
 		}
-	}
-	// chek if the input index alligns with the notch, if yes pump the next rotor
-	for _, v := range h.notchIndex {
-		if v == in {
-			notch = true
+		// chek if the input index alligns with the notch, if yes pump the next rotor
+		for _, v := range h.notchIndex {
+			if v == h.rotorPosition {
+				notch = true
+			}
 		}
 	}
+	fmt.Printf(">Rotor%v:% 3v: pos=%2v, step=% 5v, carry=%v\n", h.Pos, h.Name, h.rotorPosition, bump, notch)
+	return notch
+}
 
-	return h.transpose(in, false), notch
+//http://users.telenet.be/d.rijmenants/en/enigmatech.htm
+func (h *RotorWheel) Encode(in uint8) (out uint8) {
+
+	out = h.transpose(in, false)
+
+	fmt.Printf(">Rotor%v:% 3v: pos=%2v, in=%2v:%v out=%2v:%v\n", h.Pos, h.Name, h.rotorPosition, in, string(in+'A'), out, string(out+'A'))
+	return out
 
 }
 
 func (h *RotorWheel) Decode(in uint8) (out uint8) {
-	return h.transpose(in, true)
+	out = h.transpose(in, true)
+	fmt.Printf("<Rotor%v:% 3v: pos=%2v,  in=%2v:%v out=%2v:%v \n", h.Pos, h.Name, h.rotorPosition, in, string(in+'A'), out, string(out+'A'))
+	return out
 }
 
 func (h *RotorWheel) transpose(in byte, reverse bool) (out byte) {

@@ -9,7 +9,7 @@ import (
 
 //This test should pass as it translates to a 1 to 1 mapping
 func TestRotorWheel(t *testing.T) {
-	wI := enigma.NewRotorWheel(enigma.W_I)
+	wI := enigma.NewRotorWheel(1, enigma.W_I)
 	wI.SetInnerOffset('A')
 	wI.SetRingPosition('Z') // step before A //Message Key
 	var encoded []byte
@@ -20,10 +20,11 @@ func TestRotorWheel(t *testing.T) {
 		if k == 25 {
 			//fmt.Printf("transtion from Q - R")
 		}
-		a, notch := wI.Encode(v-'A', true) // wheel one will always icrement, validate this assumtion?
+		notch := wI.Step(true)  // wheel one will always icrement
+		a := wI.Encode(v - 'A') //
 		if v == 'Q' {
 			if notch == false {
-				t.Fatalf("bump not set after %v", string(v))
+				t.Fatalf("bump not set after %v\n", string(v))
 			}
 		}
 		if notch == true {

@@ -26,7 +26,7 @@ type (
 	//Steckerbrett
 	SB struct {
 		Setting [][]byte
-		lut     [len(CharacterSet)]uint8 // lookup table
+		lut     [len(CharacterSet) + 2]uint8 // lookup table
 	}
 )
 
@@ -37,12 +37,13 @@ func NewPlugboard(pb [][]byte) *SB {
 	return h
 }
 
+// index 0 is reserved for unplugged, 1-26
 func (h *SB) WireUp() {
 	for _, v := range h.Setting {
 		if len(v) == 2 {
 			if v[0] > 26 { // assume characters, translate to index
-				v[0] = v[0] - 'A'
-				v[1] = v[1] - 'A'
+				v[0] = v[0] - 'A' + 1
+				v[1] = v[1] - 'A' + 1
 			}
 		} else {
 			fmt.Printf("Error decoding plugboard setting %v", v)
@@ -55,10 +56,22 @@ func (h *SB) WireUp() {
 
 // Encode on the plugboard reroutes if plug wires are inserted, else input bridges to output
 func (h *SB) Encode(n uint8) (out uint8) {
-	out = h.lut[n]
+	out = h.lut[n+1]
+	if out == 0 { // unplugged is dtraight out
+		out = n
+	} else {
+		out--
+	}
+	fmt.Printf(">Plugboard in=%2v:%v out=%2v:%v\n", n, string(n+'A'), out, string(out+'A'))
 	return
 }
 func (h *SB) Decode(n uint8) (out uint8) {
-	out = h.lut[n]
+	out = h.lut[n+1]
+	if out == 0 { // unplugged is dtraight out
+		out = n
+	} else {
+		out--
+	}
+	fmt.Printf("<Plugboard in=%2v:%v out=%2v:%v\n", n, string(n+'A'), out, string(out+'A'))
 	return
 }
