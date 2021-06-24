@@ -65,7 +65,8 @@ func NewRotorWheel(pos int, w RotorWheelSetting) *RotorWheel {
 		Pos:       pos,
 	}
 	for _, v := range w.Notch {
-		h.notchIndex = append(h.notchIndex, h.charIndex.GetIndex(v))
+		//h.notchIndex = append(h.notchIndex, h.charIndex.GetIndex(v))
+		h.notchIndex = append(h.notchIndex, v-'A'+1)
 	}
 	return h
 }
@@ -85,7 +86,7 @@ func (h *RotorWheel) Step(bump bool) (notch bool) {
 			}
 		}
 	}
-	fmt.Printf(">Rotor%v:% 3v: pos=%2v, step=% 5v, carry=%v\n", h.Pos, h.Name, h.rotorPosition, bump, notch)
+	fmt.Printf(">Rotor%v:% 3v: pos=%2v, notch pos:%v, step=% 5v, carry=%v\n", h.Pos, h.Name, h.rotorPosition, h.notchIndex, bump, notch)
 	return notch
 }
 
@@ -94,29 +95,29 @@ func (h *RotorWheel) Encode(in uint8) (out uint8) {
 
 	out = h.transpose(in, false)
 
-	fmt.Printf(">Rotor%v:% 3v: pos=%2v, in=%2v:%v out=%2v:%v\n", h.Pos, h.Name, h.rotorPosition, in, string(in+'A'), out, string(out+'A'))
 	return out
 
 }
 
 func (h *RotorWheel) Decode(in uint8) (out uint8) {
 	out = h.transpose(in, true)
-	fmt.Printf("<Rotor%v:% 3v: pos=%2v,  in=%2v:%v out=%2v:%v \n", h.Pos, h.Name, h.rotorPosition, in, string(in+'A'), out, string(out+'A'))
+	//fmt.Printf("<Rotor%v:% 3v: pos=%2v,  in=%2v:%v out=%2v:%v \n", h.Pos, h.Name, h.rotorPosition, in, string(in+'A'), out, string(out+'A'))
 	return out
 }
 
 func (h *RotorWheel) transpose(in byte, reverse bool) (out byte) {
 	//shift the input charater by rotor position and inner offset
-	in = ((in) - h.rotorPosition + h.innerPosition + byte(CharacterSetCount)) % byte(CharacterSetCount)
+	i := ((in) + h.rotorPosition + h.innerPosition + byte(CharacterSetCount)) % byte(CharacterSetCount)
 
 	if !reverse {
-		out = h.codeWheel.Encode(in) // get the coded char index for that offset
+		out = h.codeWheel.Encode(i) // get the coded char index for that offset
 	} else {
-		out = h.codeWheel.Decode(in) // get the decoded char index for that offset
+		out = h.codeWheel.Decode(i) // get the decoded char index for that offset
 	}
 
 	//shift the resulting index by rotor position and inner offset
-	out = (out + h.rotorPosition - h.innerPosition + byte(CharacterSetCount)) % byte(CharacterSetCount)
+	out = (out - h.rotorPosition - h.innerPosition + byte(CharacterSetCount)) % byte(CharacterSetCount)
+	fmt.Printf("Rotor%v:% 3v: pos=%2v, in=%2v %2v:%v out=%2v:%v , reverse:%v\n", h.Pos, h.Name, h.rotorPosition, in, i, string(in+'A'), out, string(out+'A'), reverse)
 	return
 }
 
