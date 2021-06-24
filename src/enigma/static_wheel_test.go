@@ -8,7 +8,7 @@ import (
 )
 
 func TestStaticWheel(t *testing.T) {
-	wS := enigma.ETW_M4
+	wS := &enigma.ETW{W: enigma.NewWheel(enigma.ETW_M4)}
 	var result []byte
 	for _, v := range []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZ") { //
 		a := wS.GetIndex(v)

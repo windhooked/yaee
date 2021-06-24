@@ -1,13 +1,29 @@
 package enigma
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type (
 	Enigma struct {
-		Plugboard   SB
-		StaticWheel ETW
-		Wheels      []RotorWheel
-		Reflector   UKW
+		Plugboard   *SB
+		StaticWheel *ETW
+		Rotors      []*RotorWheel
+		Reflector   *UKW
+	}
+	EnigmaSetting struct {
+		//Rotor placement I II III etc.
+		Walzenlage []string
+		// Rotor Dial Setting
+		Ringstellung []byte
+		//Plugboard, Steckerverbindung
+		Steckerverbindung [][]byte
+		//StaticWheel ETW, usually 1-1
+		Eintriswalze string
+		//Reflector UKW A, B, C
+		Reflector string
+		// Rotor Innter offset setting
+		Rotorstellung []byte
 	}
 )
 
@@ -15,81 +31,95 @@ const (
 	numChars = 26
 )
 
-var (
-	M4 = &Enigma{
-		StaticWheel: ETW_M4,
-		Wheels:      []RotorWheel{W_I, W_II, W_III},
-		Reflector:   UKW_A,
-	}
-)
+/*
+keyboard - plugboard - static wheel - w0, w1, w2 - reflector
+*/
 
-func (h *Enigma) Setting(rotor []string, dial []byte, pb []PB) {
+func NewEnigma(m EnigmaSetting) *Enigma {
+
+	h := new(Enigma)
+
 	//Wire plugboard
-	h.Plugboard.WireUp(pb)
+	h.Plugboard = NewPlugboard(m.Steckerverbindung)
+
+	// insert static input wheel, scambled on some machines
+	h.StaticWheel = &ETW{W: NewWheel(m.Eintriswalze)}
+
+	//inser reflector
+	h.Reflector = &UKW{W: NewWheel(m.Reflector)}
 
 	//insert rotors
-
-	h.Wheels = nil
-	for k := range rotor {
-		switch rotor[k] {
+	for k, v := range m.Walzenlage {
+		switch v {
 		case "I":
-			h.Wheels = append(h.Wheels, W_I)
+			h.Rotors = append(h.Rotors, NewRotorWheel(W_I))
 		case "II":
-			h.Wheels = append(h.Wheels, W_II)
+			h.Rotors = append(h.Rotors, NewRotorWheel(W_II))
 		case "III":
-			h.Wheels = append(h.Wheels, W_III)
+			h.Rotors = append(h.Rotors, NewRotorWheel(W_III))
 		case "IV":
-			h.Wheels = append(h.Wheels, W_IV)
+			h.Rotors = append(h.Rotors, NewRotorWheel(W_IV))
 		case "V":
-			h.Wheels = append(h.Wheels, W_V)
+			h.Rotors = append(h.Rotors, NewRotorWheel(W_V))
 		case "VI":
-			h.Wheels = append(h.Wheels, W_VI)
+			h.Rotors = append(h.Rotors, NewRotorWheel(W_VI))
 		case "VII":
-			h.Wheels = append(h.Wheels, W_VII)
+			h.Rotors = append(h.Rotors, NewRotorWheel(W_VII))
 		case "VIII":
-			h.Wheels = append(h.Wheels, W_III)
+			h.Rotors = append(h.Rotors, NewRotorWheel(W_III))
+		case "B":
+			h.Rotors = append(h.Rotors, NewRotorWheel(W_Beta))
+		case "G":
+			h.Rotors = append(h.Rotors, NewRotorWheel(W_Gamma))
 		default:
-			fmt.Printf("failed to find config for rotor type %v", rotor[k])
+			fmt.Printf("failed to find config for rotor type %v", v)
 		}
-		h.Wheels[k].SetRing(dial[k])
-		h.Wheels[k].Build()
+		h.Rotors[k].SetRingPosition(m.Ringstellung[k]) // ring setting visible from outside
+		h.Rotors[k].SetInnerOffset(m.Rotorstellung[k]) // inner rotor offset
 	}
+	return h
 
 }
 
-/*
-keyboard - plugboard - static wheel - w0, w1, w2 - reflector
+func (h *Enigma) Codec(message string) string {
+	var o []byte
+	for _, v := range []byte(message) {
+		c := h.Step(v)
+		o = append(o, c)
+	}
+	return string(o)
+}
 
-*/
 func (h *Enigma) Step(i byte) (o byte) {
+	index := i - 'A' // index of char
 
 	//plugboard ->
-	n := h.Plugboard.Encode(i)
+	index = h.Plugboard.Encode(index)
 
 	//Input Rotor ->
-	n = h.StaticWheel.Encode(n)
+	index = h.StaticWheel.Encode(index)
 
 	// Main Rotors ->
 	next := true
 	// always increment first wheel
-	n, next = h.Wheels[0].Encode(n, next)
-	for k := range h.Wheels[1:] {
-		n, next = h.Wheels[k].Encode(n, next)
+	//index, next = h.Rotors[0].Encode(index, next)
+	for k := range h.Rotors {
+		index, next = h.Rotors[k].Encode(index, next)
 	}
 
 	// Reflector ->
-	n = h.Reflector.Encode(n)
+	index = h.Reflector.Encode(index)
 
-	// Decode back, through wheels <-
-	for k := range h.Wheels {
-		k = len(h.Wheels) - 1 - k
+	// Decode back, through Rotors <-
+	for k := range h.Rotors {
+		k = len(h.Rotors) - 1 - k
 		// start from the end
-		n = h.Wheels[k].Decode(n)
+		index = h.Rotors[k].Decode(index)
 	}
 
 	//plugboard <-
-	o = h.Plugboard.Decode(n)
+	index = h.Plugboard.Decode(index)
+	o = index + 'A'
 
 	return
-
 }

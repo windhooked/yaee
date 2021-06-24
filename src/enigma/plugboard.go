@@ -1,5 +1,7 @@
 package enigma
 
+import "fmt"
+
 /*
 https://de.wikipedia.org/wiki/Enigma-M4
 
@@ -15,55 +17,48 @@ https://de.wikipedia.org/wiki/Enigma-M4
 |  26. |20/13 26/11 3/4 7/24 14/9 16/10 8/17 12/5 2/6 15/23 |Y S R B |
 */
 var (
-	PB_30 = []PB{
-		//|  30. |18/26 17/4 21/6 3/16 19/14 22/7 8/1 12/25 5/9 10/15 |H F K D |
-		{A: 18, B: 26},
-		{A: 17, B: 4},
-		{A: 21, B: 6},
-		{A: 3, B: 16},
-		{A: 19, B: 14},
-		{A: 22, B: 7},
-		{A: 8, B: 1},
-		{A: 12, B: 25},
-		{A: 5, B: 9},
-		{A: 10, B: 15},
-	}
+
+	//|  30. |18/26 17/4 21/6 3/16 19/14 22/7 8/1 12/25 5/9 10/15 |H F K D |
+	PB_30 = [][]byte{{18, 26}, {17, 4}, {21, 6}, {3, 16}, {19, 14}, {22, 7}, {8, 1}, {12, 25}, {5, 9}, {10, 15}}
 )
 
 type (
+	//Steckerbrett
 	SB struct {
-		Setting []PB
-		lutIn   []uint8 // lookup table
-		lutOut  []uint8 // lookup table
-	}
-	PB struct {
-		A uint8 // from
-		B uint8 //to
+		Setting [][]byte
+		lut     [len(CharacterSet)]uint8 // lookup table
 	}
 )
 
-func (h *SB) WireUp(pb []PB) {
+func NewPlugboard(pb [][]byte) *SB {
+	h := new(SB)
 	h.Setting = pb
-	h.lutIn = make([]uint8, numChars+1)
-	h.lutOut = make([]uint8, numChars+1)
-	for _, v := range pb {
-		h.lutIn[v.A] = v.B
-		h.lutOut[v.B] = v.A
+	h.WireUp()
+	return h
+}
+
+func (h *SB) WireUp() {
+	for _, v := range h.Setting {
+		if len(v) == 2 {
+			if v[0] > 26 { // assume characters, translate to index
+				v[0] = v[0] - 'A'
+				v[1] = v[1] - 'A'
+			}
+		} else {
+			fmt.Printf("Error decoding plugboard setting %v", v)
+		}
+		// on 26 chars the lower 13 routes to upper 13 and vice versa
+		h.lut[v[0]] = v[1]
+		h.lut[v[1]] = v[0]
 	}
 }
 
 // Encode on the plugboard reroutes if plug wires are inserted, else input bridges to output
 func (h *SB) Encode(n uint8) (out uint8) {
-	out = h.lutIn[n-'A']
-	if out == 0 {
-		out = n
-	}
+	out = h.lut[n]
 	return
 }
 func (h *SB) Decode(n uint8) (out uint8) {
-	out = h.lutOut[n-'A']
-	if out == 0 {
-		out = n
-	}
+	out = h.lut[n]
 	return
 }
