@@ -75,7 +75,9 @@ func (h *RotorWheel) Step(bump bool) (notch bool) {
 	// the rotor first increments by 1
 	if bump {
 		h.rotorPosition += 1
+
 		// the rotor first increments by 1
+		//h.rotorPosition = (h.rotorPosition + 1) % 26;
 		if h.rotorPosition >= 26 {
 			h.rotorPosition = 0
 		}

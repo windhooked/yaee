@@ -1,8 +1,13 @@
 My facination with old mechanical calculating machines made me try this.
+
 As if the world needs another secret cipher machine.
+
 This is work in progress, I take no responsibility 
+
 The aim is as simple as possible, yet easy to understand  
-no OOP bloat
+
+implement double step behaviour for middle wheel, first offset calcuation in 
+rotor_wheel.go ,transpose()  probably needs to change as result
 
   [keyboard] - [plugboard] - [rotor1] [rotor2] [rotor3] - [reflector]
   
