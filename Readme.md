@@ -1,6 +1,6 @@
-Inspired by a lecturer on the space science leg whilst completing M813
+Inspired by a chat with a lecturer on the space science leg whilst completing M813
 
-My facination with old mechanical calculating machines made me try this.
+Old mechanical calculating machines are just facinating!
 
 As if the world needs another secret cipher machine.
 
